@@ -1,0 +1,189 @@
+<div class="row mb-1">
+  <div class="col">
+      <div class="input-group mb-3 box-shadow"> 
+          <div class="input-group-prepend">
+              <span class="input-group-text border-top-0 border-left-0 border-bottom-0"><i class="fa fa-search"></i></span>
+          </div>                   
+          <input type="text" [(ngModel)]="searchText" placeholder="Chercher par prénom..." class="form-control border-0">
+          <div class="input-group-append">
+              <span (click)="openModal(modalContent, null)" class="input-group-text border-top-0 border-right-0 border-bottom-0"><i class="fa fa-user-plus"></i></span>
+              <span (click)="toggle('list')" class="input-group-text border-top-0 border-right-0 border-bottom-0"><i class="fa fa-list"></i></span>
+          </div>
+      </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-12">
+      <div class="table-responsive bg-white box-shadow">
+          <table class="table table-hover">
+              <thead>
+                  <tr> 
+                      <th></th>
+                      <th>Nom Complet</th>                        
+                      <th>Gender</th>
+                      <th>Email</th> 
+                      <th>Politique</th> 
+                      <th>Departement</th>                                             
+                      <th>Action</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <tr *ngFor="let user of users | UserSearchPipe : searchText | paginate: { itemsPerPage: 3, currentPage: p }">                        
+                      <td class="align-middle">
+                          <!--<img class="rounded-circle" [src]="user.image" width="40">-->
+                          <img class="rounded-circle" src="assets/img/users/user-orig.jpg" width="40">
+                      </td>
+                      <td class="align-middle text-truncate">{{user.prenom}} {{user.nom}}</td>
+                      <td class="align-middle text-truncate">{{user.gender}}</td>
+                      <td class="align-middle text-truncate">{{user.email}}</td>
+                      <td class="align-middle text-truncate">{{user.politique.nom}}</td>
+                      <td class="align-middle text-truncate">{{user.departement.deptName}}</td>
+                      <td class="align-middle">
+                          <div class="btn-group" role="group">
+                              <button *ngIf="isResponsable_rh()" class="btn btn-secondary btn-sm btn-info" (click)="openModall(modalContentUpdate, user)"><i class="fa fa-pencil"></i></button>
+                              <button *ngIf="isResponsable_rh()" class="btn btn-secondary btn-sm btn-danger" (click)="deleteUser(user.idUser)"><i class="fa fa-trash"></i></button>
+                          </div>
+                      </td>
+                  </tr>
+              </tbody>
+          </table>
+        </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-12">
+      <div class="bg-white text-center">
+          <pagination-controls autoHide="false" (pageChange)="p = $event" maxSize="3" previousLabel="" nextLabel=""></pagination-controls>
+      </div>        
+  </div>
+</div>
+<ng-template #modalContent>
+  <div class="modal-body bg-white">
+      <div class="row">
+          <div class="col-12 vertical-tabs">                
+              <form class="row px-3 form" [formGroup]="form" (ngSubmit)="onSubmit(form.value)">
+                  <!--<div class="tab-pane">--> <div class="container">
+                        <div class="form-group">
+                            <label class="text-secondary">Prénom</label>
+                            <input formControlName="prenom" class="form-control" type="text">
+                        </div>
+                         <div class="form-group">
+                            <label class="text-secondary">Nom</label>
+                            <input formControlName="nom" class="form-control" type="text">
+                        </div>
+                        <div class="form-group">
+                            <label class="text-secondary mr-2">Gender</label>
+                                <label class="custom-control custom-radio custom-control-inline radio-inline">
+                                    <input type="radio" formControlName="gender" class=" radio-dark-gray" [(ngModel)]="gender" value="Homme"> Homme
+                                </label>
+                                <label class="custom-control custom-radio custom-control-inline radio-inline">
+                                    <input type="radio" formControlName="gender" class=" radio-dark-gray" [(ngModel)]="gender" value="Femme"> Femme 
+                                </label>
+                        </div>                  
+                    <!--<div class="tab-content col-9 border-0">-->
+                      <!--<div class="tab-pane active">   -->                                             
+                        <div class="form-group">
+                            <label class="text-secondary">Email</label>
+                            <input formControlName="email" class="form-control validation-field" type="text">
+                            <small class="text-danger" *ngIf="form.controls.email.touched && form.controls.email.errors?.required">Email is required</small>                              
+                            <small class="text-danger" *ngIf="form.controls.email.touched && form.controls.email.errors?.email">Email is invalide</small>
+                        </div>
+                        <div class="form-group">
+                              <label class="text-secondary">Password</label>
+                              <input formControlName="password" class="form-control validation-field" type="password">
+                              <small class="text-danger" *ngIf="form.controls.password.touched && form.controls.password.errors?.required">Password is required</small>                              
+                              <small class="text-danger" *ngIf="form.controls.password.touched && form.controls.password.errors?.minlength">Password isn't long enough, minimum of 8 characters</small>
+                              <small class="text-danger" *ngIf="form.controls.password.touched && form.controls.password.errors?.pattern">Password must contain at least one lowercase letter, one uppercase letter and one number</small>
+                        </div>                             
+                        <div class="form-group">
+                            <label for="politique" class="text-secondary">Politique</label>
+                            <select name="politique" formControlName="politique" class="form-control" [(ngModel)]="poliSelected">
+                                <option *ngFor="let poli of politique" [value]="poli.id">{{poli.nom}}</option>
+                            </select>
+                        </div>               
+                        <!--<div class="tab-pane">-->
+                        <div class="form-group">
+                            <label for="departement" class="text-secondary">Departement</label>
+                            <select name="departement" formControlName="departement" class="form-control">
+                                <option value="picosoft">Picosoft</option>
+                                <option value="developpement">Developpement</option>
+                                <option value="administration">Administration</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="role" class="text-secondary">Role</label>
+                            <select name="role" formControlName="role" class="form-control">
+                                <option *ngFor="let role of roles" [value]="role.id">{{role.role}}</option>
+                            </select>
+                        </div>        
+                        <div class="col-12 bg-white text-center py-1">
+                            <button *ngIf="isResponsable_rh()" [disabled]="!form.valid" class="btn btn-success mr-1" type="submit"><!--<span *ngIf="user.idUser">Update</span>--><span *ngIf="!user.idUser">Add</span></button>
+                            <button type="button" class="btn btn-danger" (click)="closeModal()">Cancel</button>
+                        </div>
+                    </div> 
+              </form> 
+          </div>
+      </div>    
+  </div>
+</ng-template>
+ 
+<ng-template #modalContentUpdate>
+    <div class="modal-body bg-white">
+        <div class="row">
+            <div class="col-12 vertical-tabs">                
+                <form class="row px-3 form" [formGroup]="form" (ngSubmit)="onSubmit(form.value)">
+                    <!--<div class="tab-pane">--> <div class="container">
+                          <div class="form-group">
+                              <label class="text-secondary">Prénom</label>
+                              <input formControlName="prenom" class="form-control" type="text">
+                          </div>
+                           <div class="form-group">
+                              <label class="text-secondary">Nom</label>
+                              <input formControlName="nom" class="form-control" type="text">
+                          </div>
+                          <div class="form-group">
+                              <label class="text-secondary mr-2">Gender</label>
+                                  <label class="custom-control custom-radio custom-control-inline radio-inline">
+                                      <input type="radio" formControlName="gender" class=" radio-dark-gray" [(ngModel)]="genderOption" value="homme"> Homme
+                                  </label>
+                                  <label class="custom-control custom-radio custom-control-inline radio-inline">
+                                      <input type="radio" formControlName="gender" class=" radio-dark-gray" [(ngModel)]="genderOption" value="femme"> Femme 
+                                  </label>
+                          </div>                  
+                      <!--<div class="tab-content col-9 border-0">-->
+                        <!--<div class="tab-pane active">   -->                                             
+                          <div class="form-group">
+                              <label class="text-secondary">Email</label>
+                              <input formControlName="email" class="form-control validation-field" type="text">
+                              <!--<small class="text-danger" *ngIf="form.controls.email.touched && form.controls.email.errors?.required">Email is required</small>   -->                           
+                              <small class="text-danger" *ngIf="form.controls.email.touched && form.controls.email.errors?.email">Email is invalide</small>
+                          </div>                            
+                          <div class="form-group">
+                              <label for="politique" class="text-secondary">Politique</label>
+                              <select name="politique" formControlName="politique" class="form-control"  [(ngModel)]="poliSelected.id">
+                                  <option *ngFor="let poli of politique" [value]="poli.id" >{{poli.nom}}</option>
+                              </select>
+                          </div>               
+                          <!--<div class="tab-pane">-->
+                          <div class="form-group">
+                              <label for="departement" class="text-secondary">Departement</label>
+                              <select name="departement" formControlName="departement" class="form-control" [(ngModel)]="deptSelected.id">
+                                  <option *ngFor="let dep of dept" [value]="dep.id">{{dep.deptName}}</option>
+                              </select>
+                          </div>
+                          <div class="form-group">
+                              <label for="role" class="text-secondary">Role</label>
+                              <select name="role" formControlName="role" class="form-control" [(ngModel)]="roleSelected.id">
+                                  <option *ngFor="let role of roles" [value]="role.id">{{role.role}}</option>
+                              </select>
+                          </div>        
+                          <div class="col-12 bg-white text-center py-1">
+                              <button *ngIf="isResponsable_rh()"  class="btn btn-success mr-1" type="submit"><span *ngIf="user.idUser">Update</span></button>
+                              <button type="button" class="btn btn-danger" (click)="closeModal()">Cancel</button>
+                          </div>
+                      </div> 
+                </form> 
+            </div>
+        </div>    
+    </div>
+  </ng-template>
